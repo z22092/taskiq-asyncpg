@@ -1,0 +1,31 @@
+name: Release python package
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  release-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: eifinger/setup-rye@v4
+        id: setup-rye
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        if: steps.setup-rye.outputs.cache-hit != 'true'
+        run: |
+          rye sync --no-lock
+
+      - name: Build package
+        run: rye build --sdist --out "dist"
+
+      - name: Upload distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
