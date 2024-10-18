@@ -21,7 +21,7 @@ _ReturnType = TypeVar("_ReturnType")
 class AsyncpgResultBackend(AsyncResultBackend[_ReturnType]):
     """Result backend for TaskIQ based on Asyncpg."""
 
-    _database_pool: Pool[Any]
+    _database_pool: Pool  # type: ignore[type-arg]
 
     def __init__(
         self,
