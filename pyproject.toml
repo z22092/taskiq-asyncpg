@@ -1,9 +1,10 @@
 [project]
 name = "taskiq-asyncpg"
-version = "0.2.0"
+version = "0.3.2"
 description = "Asyncpg and PostgreSQL integration for taskiq"
 authors = [{ name = "Jefferson Venceslau", email = "jeff.venceslau@gmail.com" }]
 dependencies = ["taskiq>=0.11.7", "asyncpg>=0.29.0"]
+license = "MIT"
 readme = "README.md"
 requires-python = ">= 3.9"
 packages = [{ include = "taskiq_asyncpg" }]
@@ -33,10 +34,8 @@ keywords = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.rye]
+[tool.uv]
 managed = true
-generate-hashes = true
-lock-with-sources = true
 dev-dependencies = [
     "ruff>=0.6.9",
     "pytest>=8.3.3",
@@ -54,6 +53,10 @@ dev-dependencies = [
     "black>=24.10.0",
     "twine>=5.1.1",
 ]
+no-sources = false
+
+[tool.uv.pip]
+generate-hashes = true
 
 [tool.hatch.metadata]
 allow-direct-references = true
