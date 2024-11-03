@@ -23,6 +23,11 @@ using rye:
 rye add taskiq-asyncpg
 ```
 
+using uv:
+```bash
+uv add taskiq-asyncpg
+```
+
 ## Usage
 Let's see the example with the redis broker and PostgreSQL Asyncpg result backend:
 ```python

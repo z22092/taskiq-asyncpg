@@ -61,14 +61,14 @@ class AsyncpgResultBackend(AsyncResultBackend[_ReturnType]):
 
             async with self._database_pool.acquire() as connection:
                 await connection.execute(
-                    query=CREATE_TABLE_QUERY.format(
+                    CREATE_TABLE_QUERY.format(
                         self.table_name,
                         self.field_for_task_id,
                         self.serializer.database_type,
                     ),
                 )
                 await connection.execute(
-                    query=CREATE_INDEX_QUERY.format(
+                    CREATE_INDEX_QUERY.format(
                         self.table_name,
                         self.table_name,
                     ),
