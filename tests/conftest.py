@@ -3,10 +3,11 @@ import random
 import string
 from typing import AsyncGenerator, TypeVar
 
-import pytest
 import asyncpg
+import pytest
 
-from taskiq_asyncpg import AsyncpgResultBackend, AsyncpgBroker
+from taskiq_asyncpg.broker import AsyncpgBroker
+from taskiq_asyncpg.result_backend import AsyncpgResultBackend
 
 _ReturnType = TypeVar("_ReturnType")
 
@@ -31,7 +32,7 @@ def postgres_table() -> str:
     """
     return "".join(
         random.choice(
-            string.ascii_uppercase,
+            string.ascii_lowercase,
         )
         for _ in range(10)
     )
@@ -50,7 +51,7 @@ def postgresql_dsn() -> str:
     )
 
 @pytest.fixture
-async def connection(postgresql_dsn):
+async def connection(postgresql_dsn: str) -> AsyncGenerator[asyncpg.Connection, None]:
     """
     Fixture to create a connection to PostgreSQL.
 
@@ -95,7 +96,7 @@ async def asyncpg_broker(
     await broker.startup()
     yield broker
     assert broker.write_pool
-    # await broker.write_pool.execute(
-    #     f"DROP TABLE {postgres_table}",
-    # )
+    await broker.write_pool.execute(
+        f"DROP TABLE {postgres_table}",
+    )
     await broker.shutdown()

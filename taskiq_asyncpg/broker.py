@@ -2,14 +2,7 @@ import asyncio
 import json
 import logging
 from collections.abc import AsyncGenerator
-from typing import (
-    Any,
-    Optional,
-    TypeVar,
-    Union,
-    cast,
-    Final
-)
+from typing import Any, Final, Optional, Union, cast
 
 import asyncpg
 from taskiq import AckableMessage, AsyncBroker, BrokerMessage
@@ -22,7 +15,6 @@ from taskiq_asyncpg.queries import (
     INSERT_MESSAGE_QUERY,
     SELECT_MESSAGE_QUERY,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -75,9 +67,14 @@ class AsyncpgBroker(AsyncBroker):
                 raise RuntimeError(msg)
 
             async with self.write_pool.acquire() as conn:
-                _ = await conn.execute(CREATE_TABLE_MESSAGES_QUERY.format(self.table_name))
+                _ = await conn.execute(
+                    CREATE_TABLE_MESSAGES_QUERY.format(self.table_name),
+                )
 
-            await self.read_conn.add_listener(self.channel_name, self._notification_handler)
+            await self.read_conn.add_listener(
+                self.channel_name,
+                self._notification_handler,
+            )
             self._queue = asyncio.Queue()
         except Exception as error:
             raise DatabaseConnectionError(str(error)) from error
@@ -144,12 +141,12 @@ class AsyncpgBroker(AsyncBroker):
             if delay_value is not None:
                 delay_seconds = int(delay_value)
                 _ = asyncio.create_task(  # noqa: RUF006
-                    self._schedule_notification(message_inserted_id, delay_seconds)
+                    self._schedule_notification(message_inserted_id, delay_seconds),
                 )
             else:
                 # Send a NOTIFY with the message ID as payload
                 _ = await conn.execute(
-                    f"NOTIFY {self.channel_name}, '{message_inserted_id}'"
+                    f"NOTIFY {self.channel_name}, '{message_inserted_id}'",
                 )
 
     async def _schedule_notification(self, message_id: int, delay_seconds: int) -> None:
@@ -180,11 +177,11 @@ class AsyncpgBroker(AsyncBroker):
                 payload = await self._queue.get()
                 message_id = int(payload)
                 message_row = await self.read_conn.fetchrow(
-                    SELECT_MESSAGE_QUERY.format(self.table_name), message_id
+                    SELECT_MESSAGE_QUERY.format(self.table_name), message_id,
                 )
                 if message_row is None:
                     logger.warning(
-                        f"Message with id {message_id} not found in database."
+                        f"Message with id {message_id} not found in database.",
                     )
                     continue
                 if message_row.get("message") is None:
