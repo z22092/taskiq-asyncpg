@@ -1,6 +1,6 @@
 # TaskIQ - Asyncpg
 
-TaskIQ-Asyncpg is a plugin for taskiq that adds a new result backend based on PostgreSQL and [Asyncpg](https://github.com/MagicStack/asyncpg).
+TaskIQ-Asyncpg is a plugin for taskiq that adds a new result backend and broker based on PostgreSQL and [Asyncpg](https://github.com/MagicStack/asyncpg).
 
 ## Installation
 To use this project you must have installed core taskiq library:
@@ -34,18 +34,15 @@ Let's see the example with the redis broker and PostgreSQL Asyncpg result backen
 # broker.py
 import asyncio
 
-from taskiq_redis import ListQueueBroker
-from taskiq_asyncpg import AsyncpgResultBackend
+from taskiq_asyncpg import AsyncpgResultBackend, AsyncpgBroker
 
-asyncpg_result_backend = AsyncpgResultBackend(
+result_backend = AsyncpgResultBackend(
     dsn="postgres://postgres:postgres@localhost:5432/postgres",
 )
 
-# Or you can use PubSubBroker if you need broadcasting
-broker = ListQueueBroker(
-    url="redis://localhost:6379",
-    result_backend=asyncpg_result_backend,
-)
+broker = AsyncpgBroker(
+    dsn="postgres://postgres:postgres@localhost:5432/postgres",
+).with_result_backend(result_backend)
 
 
 @broker.task

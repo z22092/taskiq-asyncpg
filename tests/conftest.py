@@ -4,8 +4,9 @@ import string
 from typing import AsyncGenerator, TypeVar
 
 import pytest
+import asyncpg
 
-from taskiq_asyncpg.result_backend import AsyncpgResultBackend
+from taskiq_asyncpg import AsyncpgResultBackend, AsyncpgBroker
 
 _ReturnType = TypeVar("_ReturnType")
 
@@ -48,6 +49,18 @@ def postgresql_dsn() -> str:
         or "postgresql://postgres:postgres@localhost:5432/taskiqasyncpg"
     )
 
+@pytest.fixture
+async def connection(postgresql_dsn):
+    """
+    Fixture to create a connection to PostgreSQL.
+
+    :param postgresql_dsn: DSN to PostgreSQL.
+    :return: connection to PostgreSQL.
+    """
+    conn = await asyncpg.connect(postgresql_dsn)
+    yield conn
+    await conn.close()
+
 
 @pytest.fixture()
 async def asyncpg_result_backend(
@@ -62,3 +75,27 @@ async def asyncpg_result_backend(
     yield backend
     await backend._database_pool.execute(f"DROP TABLE {postgres_table}")
     await backend.shutdown()
+
+
+@pytest.fixture()
+async def asyncpg_broker(
+    postgresql_dsn: str,
+    postgres_table: str,
+) -> AsyncGenerator[AsyncpgBroker, None]:
+    """
+    Fixture to set up and tear down the broker.
+
+    Initializes the broker with test parameters.
+    """
+    broker = AsyncpgBroker(
+        dsn=postgresql_dsn,
+        channel_name=f"{postgres_table}_channel",
+        table_name=postgres_table,
+    )
+    await broker.startup()
+    yield broker
+    assert broker.write_pool
+    # await broker.write_pool.execute(
+    #     f"DROP TABLE {postgres_table}",
+    # )
+    await broker.shutdown()
